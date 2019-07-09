@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Northwind.Application.Customers.Queries.GetCustomersList;
-using Northwind.Domain.Entities;
+﻿using System.Collections.Generic;
 
-namespace Northwind.Application.Employees
+namespace Northwind.Application.Employees.Queries
 {
     public class EmployeesListViewModel
     {

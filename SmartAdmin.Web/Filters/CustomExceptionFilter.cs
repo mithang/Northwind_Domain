@@ -2,6 +2,7 @@
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Northwind.Application.Exceptions;
 
 namespace SmartAdmin.Web.Filters
 {

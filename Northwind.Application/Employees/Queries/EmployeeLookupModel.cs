@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using AutoMapper;
-using Northwind.Application.Customers.Queries.GetCustomersList;
+﻿using AutoMapper;
 using Northwind.Application.Interfaces.Mapping;
 using Northwind.Domain.Entities;
 
-namespace Northwind.Application.Employees
+namespace Northwind.Application.Employees.Queries
 {
     public class EmployeeLookupModel : IHaveCustomMapping
     {
