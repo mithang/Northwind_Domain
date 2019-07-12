@@ -209,6 +209,8 @@ namespace Northwind.API.Controllers
                 //new Claim(JwtRegisteredClaimNames.GivenName, user.FirstName),
                 //new Claim(JwtRegisteredClaimNames.FamilyName, user.LastName),
                 //new Claim(JwtRegisteredClaimNames.Email, user.Email)
+                //new Claim("NhanVien","All") dùng khi c.AddPolicy("NhanVien", p => p.RequireClaim("NhanVien", "All")); và [Authorize(Policy = "NhanVien")]public class EmployeesController
+
             }.Union(userClaims);
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Tokens:Key"]));

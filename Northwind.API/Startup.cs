@@ -129,7 +129,6 @@ namespace Northwind.API
             // Customise default API behavour
             services.Configure<ApiBehaviorOptions>(options => { options.SuppressModelStateInvalidFilter = true; });
 
-
             //Yêu cầu chứng thực là token, mặt định là cookie và tự động sử dụng dữ liệu khi login còn token thì phải dùng bearer
             services.AddAuthentication(x =>
             {
@@ -150,6 +149,11 @@ namespace Northwind.API
                 };
             });
 
+            services.AddAuthorization(c =>
+            {
+                c.AddPolicy("NhanVien", p => p.RequireClaim("NhanVien", "All"));
+                //c.AddPolicy("writeAccess", p => p.RequireClaim("scope", "writeAccess"));
+            });
 
             services.AddSwaggerGen(c => {
                 c.SwaggerDoc("v1", new OpenApiInfo {Title = "My API", Version = "v1"});
