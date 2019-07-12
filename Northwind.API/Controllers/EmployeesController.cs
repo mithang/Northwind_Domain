@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Northwind.Application.Employees;
@@ -13,6 +14,7 @@ using Northwind.Application.Employees.Queries;
 namespace Northwind.API.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize]
     public class EmployeesController : BaseController
     {
         [HttpGet]

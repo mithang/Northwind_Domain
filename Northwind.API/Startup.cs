@@ -28,6 +28,7 @@ using Northwind.API.Filters;
 using Northwind.Common;
 using Northwind.Infrastructure;
 using Northwind.Persistence;
+using System.Collections.Generic;
 
 namespace Northwind.API
 {
@@ -63,15 +64,11 @@ namespace Northwind.API
             options.UseSqlServer(Configuration.GetConnectionString("NorthwindDatabase")));
             //services.AddDbContext<INorthwindDbContext, NorthwindDbContext>(options =>
             //    {
-            //        options.UseSqlServer(Configuration.GetConnectionString("NorthwindDatabase"),b => b.MigrationsAssembly("Northwind.API"));
             //        options.UseSqlServer(Configuration.GetConnectionString("NorthwindDatabase"), b => b.MigrationsAssembly("Northwind.Persistence"));
-            //        options.UseSqlServer(Configuration.GetConnectionString("NorthwindDatabase"), b => b.MigrationsAssembly("Northwind.Application"));
-
             //    });
 
 
-            
-            services.AddTransient<NorthwindDbContext>();
+                        services.AddTransient<NorthwindDbContext>();
 
             services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
@@ -83,58 +80,6 @@ namespace Northwind.API
 
             }).AddEntityFrameworkStores<NorthwindDbContext>().AddDefaultTokenProviders();
 
-            
-            //// jwt wire up
-            //// Get options from app settings
-            //var jwtAppSettingOptions = Configuration.GetSection(nameof(JwtIssuerOptions));
-
-            //// Configure JwtIssuerOptions
-            //services.Configure<JwtIssuerOptions>(options =>
-            //{
-            //    options.Issuer = jwtAppSettingOptions[nameof(JwtIssuerOptions.Issuer)];
-            //    options.Audience = jwtAppSettingOptions[nameof(JwtIssuerOptions.Audience)];
-            //    options.SigningCredentials = new SigningCredentials(_signingKey, SecurityAlgorithms.HmacSha256);
-            //});
-
-            //var tokenValidationParameters = new TokenValidationParameters
-            //{
-            //    ValidateIssuer = true,
-            //    ValidIssuer = jwtAppSettingOptions[nameof(JwtIssuerOptions.Issuer)],
-
-            //    ValidateAudience = true,
-            //    ValidAudience = jwtAppSettingOptions[nameof(JwtIssuerOptions.Audience)],
-
-            //    ValidateIssuerSigningKey = true,
-            //    IssuerSigningKey = _signingKey,
-
-            //    RequireExpirationTime = false,
-            //    ValidateLifetime = true,
-            //    ClockSkew = TimeSpan.Zero
-            //};
-            //services.AddAuthentication(options =>
-            //{
-            //    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            //    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-
-            //}).AddJwtBearer(configureOptions =>
-            //{
-            //    configureOptions.ClaimsIssuer = jwtAppSettingOptions[nameof(JwtIssuerOptions.Issuer)];
-            //    configureOptions.TokenValidationParameters = tokenValidationParameters;
-            //    configureOptions.SaveToken = true;
-            //});
-
-            //// add identity
-            //var builder = services.AddIdentityCore<ApplicationUser>(o =>
-            //{
-            //    // configure identity options
-            //    o.Password.RequireDigit = false;
-            //    o.Password.RequireLowercase = false;
-            //    o.Password.RequireUppercase = false;
-            //    o.Password.RequireNonAlphanumeric = false;
-            //    o.Password.RequiredLength = 6;
-            //});
-            //builder = new IdentityBuilder(builder.UserType, typeof(IdentityRole), builder.Services);
-            //builder.AddEntityFrameworkStores<NorthwindDbContext>().AddDefaultTokenProviders();
 
             services
                 .AddMvc(options =>
@@ -184,7 +129,58 @@ namespace Northwind.API
             // Customise default API behavour
             services.Configure<ApiBehaviorOptions>(options => { options.SuppressModelStateInvalidFilter = true; });
 
-            services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo {Title = "My API", Version = "v1"}); });
+
+            //Yêu cầu chứng thực là token, mặt định là cookie và tự động sử dụng dữ liệu khi login còn token thì phải dùng bearer
+            services.AddAuthentication(x =>
+            {
+                x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(x =>
+            {
+                x.RequireHttpsMetadata = false;
+                x.SaveToken = true;
+                x.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Tokens:Key"])),
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    
+                };
+            });
+
+
+            services.AddSwaggerGen(c => {
+                c.SwaggerDoc("v1", new OpenApiInfo {Title = "My API", Version = "v1"});
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Description ="JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer"
+                });
+
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            },
+                            Scheme = "oauth2",
+                            Name = "Bearer",
+                            In = ParameterLocation.Header,
+
+                        },
+                        new List<string>()
+                    }
+                });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
