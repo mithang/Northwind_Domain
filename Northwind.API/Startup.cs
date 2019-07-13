@@ -151,15 +151,20 @@ namespace Northwind.API
                 x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             })
-            .AddGoogle(op=> {
-                // IConfigurationSection googleAuthNSection =
-                //Configuration.GetSection("Authentication:Google");
-                // op.ClientId = googleAuthNSection["ClientId"];
-                // op.ClientSecret = googleAuthNSection["ClientSecret"];
-                //https://stackoverflow.com/questions/54942102/oauth2-login-to-google-api-with-asp-net-core-mvc
-                op.ClientId = "351865068992-9n45989ahb0ot26m10clusj206a7ub4n.apps.googleusercontent.com";
-                op.ClientSecret = "ERD5Lvjf8TpGUUnuyTGv27vo";
-            })
+            //.AddGoogle(op=> {
+            //    // IConfigurationSection googleAuthNSection =
+            //    //Configuration.GetSection("Authentication:Google");
+            //    // op.ClientId = googleAuthNSection["ClientId"];
+            //    // op.ClientSecret = googleAuthNSection["ClientSecret"];
+            //    //https://stackoverflow.com/questions/54942102/oauth2-login-to-google-api-with-asp-net-core-mvc
+            //    op.ClientId = "351865068992-9n45989ahb0ot26m10clusj206a7ub4n.apps.googleusercontent.com";
+            //    op.ClientSecret = "ERD5Lvjf8TpGUUnuyTGv27vo";
+            //})
+            //.AddFacebook(facebookOptions =>
+            //{
+            //    facebookOptions.AppId = Configuration["Authentication:Facebook:AppId"];
+            //    facebookOptions.AppSecret = Configuration["Authentication:Facebook:AppSecret"];
+            //})
             .AddJwtBearer(x =>
             {
                 x.RequireHttpsMetadata = false;
@@ -232,6 +237,9 @@ namespace Northwind.API
                 });
             });
             services.AddScoped<IAuthService, AuthService>();
+            services.AddTransient<AccountService, AccountService>();
+            services.AddTransient<FacebookService, FacebookService>();
+            services.AddTransient<JwtHandler, JwtHandler>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
