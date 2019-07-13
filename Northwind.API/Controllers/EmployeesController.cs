@@ -14,7 +14,8 @@ using Northwind.Application.Employees.Queries;
 namespace Northwind.API.Controllers
 {
     [Route("api/[controller]")]
-    [Authorize(Policy = "NhanVien")]
+    //[Authorize(Policy = "NhanVien")]
+    [Authorize]
     public class EmployeesController : BaseController
     {
         [HttpGet]

@@ -12,6 +12,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Northwind.Application.Auth;
 using Northwind.API.ViewModels;
+using Google.Apis.Auth;
+using Northwind.API.Helpers;
+using Northwind.API.Models;
+using Northwind.API.Services;
 
 namespace Northwind.API.Controllers
 {
@@ -21,15 +25,19 @@ namespace Northwind.API.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IConfiguration _configuration;
+        private IAuthService _authService;
 
         public AuthController(UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager, IConfiguration configuration)
+            SignInManager<ApplicationUser> signInManager, IConfiguration configuration, IAuthService authService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _configuration = configuration;
+            _authService = authService;
         }
+        
 
+       
         //[AllowAnonymous]
         //public IActionResult Login(string returnUrl)
         //{
@@ -218,8 +226,46 @@ namespace Northwind.API.Controllers
 
         //    return Redirect(returnUrl);
         //}
+        [AllowAnonymous]
+        [HttpPost("google")]
+        public async Task<IActionResult> Google([FromBody]UserView userView)
+        {
+            try
+            {
+                //SimpleLogger.Log("userView = " + userView.tokenId);
+                var payload = GoogleJsonWebSignature.ValidateAsync(userView.tokenId, new GoogleJsonWebSignature.ValidationSettings()).Result;
+                var user = await _authService.Authenticate(payload);
+                SimpleLogger.Log(payload.ExpirationTimeSeconds.ToString());
 
-        private dynamic CreateToken(IEnumerable<Claim> userClaims, ApplicationUser user)
+                var claims = new[]
+                {
+                    new Claim(JwtRegisteredClaimNames.Sub, Security.Encrypt("minhtv",user.email)),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                };
+
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Tokens:Key"]));
+                var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+                var token = new JwtSecurityToken(issuer: _configuration["Tokens:Issuer"],
+                    audience: _configuration["Tokens:Audience"],
+                    claims: claims,
+                    expires: DateTime.UtcNow.AddMinutes(15),
+                    signingCredentials: creds);
+
+                return Ok(new
+                {
+                    token = new JwtSecurityTokenHandler().WriteToken(token)
+                });
+            }
+            catch (Exception ex)
+            {
+                Helpers.SimpleLogger.Log(ex);
+                BadRequest(ex.Message);
+            }
+            return BadRequest();
+        }
+    
+    private dynamic CreateToken(IEnumerable<Claim> userClaims, ApplicationUser user)
         {
             
             var claims = new[]

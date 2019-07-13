@@ -31,6 +31,8 @@ using Northwind.Persistence;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.Google;
+using Northwind.API.Services;
 
 namespace Northwind.API
 {
@@ -149,6 +151,15 @@ namespace Northwind.API
                 x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             })
+            .AddGoogle(op=> {
+                // IConfigurationSection googleAuthNSection =
+                //Configuration.GetSection("Authentication:Google");
+                // op.ClientId = googleAuthNSection["ClientId"];
+                // op.ClientSecret = googleAuthNSection["ClientSecret"];
+                //https://stackoverflow.com/questions/54942102/oauth2-login-to-google-api-with-asp-net-core-mvc
+                op.ClientId = "351865068992-9n45989ahb0ot26m10clusj206a7ub4n.apps.googleusercontent.com";
+                op.ClientSecret = "ERD5Lvjf8TpGUUnuyTGv27vo";
+            })
             .AddJwtBearer(x =>
             {
                 x.RequireHttpsMetadata = false;
@@ -220,6 +231,7 @@ namespace Northwind.API
                     }
                 });
             });
+            services.AddScoped<IAuthService, AuthService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -235,8 +247,6 @@ namespace Northwind.API
 
             //Đã remove và thay đổi thành app.UseAuthentication()
             //app.UseIdentity();
-
-
 
             app.UseSwagger();
 
