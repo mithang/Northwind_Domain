@@ -67,15 +67,32 @@ namespace Northwind.API.Controllers
         [HttpPost("logintoken")]
         public async Task<IActionResult> Login(LoginViewModel loginViewModel)
         {
+            
 
             if (!ModelState.IsValid)
-                return BadRequest(loginViewModel);
+                return BadRequest(ReponseResult.ReponseValid(IsSuccess:true,Data: loginViewModel));
 
             var user = await _userManager.FindByNameAsync(loginViewModel.UserName);
 
             if (user != null)
             {
+                //isPersistent: lưu password trong cookie
+                //lockoutOnFailure: false là không khóa tài khoản
                 var result = await _signInManager.PasswordSignInAsync(user, loginViewModel.Password, false, false);
+                //IsLockedOut kết họp với LockedOutEnd và LockedOutEnabled thời gian khóa tài khoản khi số lần login bị sai password AccessFaildCount
+                if (result.IsLockedOut)
+                {
+                    return BadRequest(ReponseResult.ReponseValid(IsSuccess: true, Data: "",Message:"Tài khoản của bạn đã bị khóa !"));
+                }
+                if (result.IsNotAllowed)
+                {
+
+                }
+                if (result.RequiresTwoFactor)
+                {
+
+                }
+                
                 if (result.Succeeded)
                 {
                     var userClaims = await _userManager.GetClaimsAsync(user);
@@ -136,7 +153,10 @@ namespace Northwind.API.Controllers
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
-            await _signInManager.SignOutAsync();
+            if (User.Identity.IsAuthenticated)
+            {
+                await _signInManager.SignOutAsync();
+            }
             return Ok();
         }
 

@@ -29,6 +29,8 @@ using Northwind.Common;
 using Northwind.Infrastructure;
 using Northwind.Persistence;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Threading.Tasks;
 
 namespace Northwind.API
 {
@@ -40,7 +42,6 @@ namespace Northwind.API
         }
         private const string SecretKey = "iNivDmHLpUA223sqsfhqGbMRdRj1PVkH"; // todo: get this from somewhere secure
         private readonly SymmetricSecurityKey _signingKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(SecretKey));
-
 
         public IConfiguration Configuration { get; }
 
@@ -67,25 +68,38 @@ namespace Northwind.API
             //        options.UseSqlServer(Configuration.GetConnectionString("NorthwindDatabase"), b => b.MigrationsAssembly("Northwind.Persistence"));
             //    });
 
-
-                        services.AddTransient<NorthwindDbContext>();
+            services.AddTransient<NorthwindDbContext>();
 
             services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
+                //Cấu hình cho password
                 options.Password.RequireDigit = false;
                 options.Password.RequireLowercase = false;
                 options.Password.RequireUppercase = false;
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequiredLength = 6;
 
-            }).AddEntityFrameworkStores<NorthwindDbContext>().AddDefaultTokenProviders();
+                //Cấu hình cho email
+                options.User.RequireUniqueEmail = true;
+
+                
+
+            })
+            .AddEntityFrameworkStores<NorthwindDbContext>().AddDefaultTokenProviders();
 
 
             services
                 .AddMvc(options =>
                 {
+                    
+                    //Nếu lỗi thì trả về error và stackTrace
                     options.Filters.Add(typeof(CustomExceptionFilterAttribute));
+
+                    //Yêu cầu ứng dụng phải chạy bằng https
                     options.ReturnHttpNotAcceptable = true;
+                    //Hoặc
+                    //options.Filters.Add(new RequireHttpsAttribute());
+
                     options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
                     // setupAction.InputFormatters.Add(new XmlDataContractSerializerInputFormatter());
 
@@ -145,9 +159,30 @@ namespace Northwind.API
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Tokens:Key"])),
                     ValidateIssuer = false,
                     ValidateAudience = false,
-                    
+
                 };
-            });
+            }); //Nếu Api có mở trang web thì thêm hàm bên dưới
+                //.AddCookie(async op => {
+                //    //Nếu là web app thì cấu hình path login, path forbin, path signout... tại đây, để controller biết điều hướng chứng thực
+                //    op.LoginPath = "/auth/login";
+                //    op.Events = new CookieAuthenticationEvents
+                //    {
+                //        //Nếu chưa login thì trên api show ra 401, còn web thì trả về trang login
+                //        OnRedirectToLogin = async ctx =>
+                //        {
+                //            if (ctx.Request.Path.StartsWithSegments("/api") && ctx.Response.StatusCode == 200)
+                //            {
+                //                ctx.Response.StatusCode = 401;
+                //            }
+                //            else
+                //            {
+                //                ctx.Response.Redirect(ctx.RedirectUri);
+                //            }
+                //            await Task.Yield();
+                //        }
+                //    };
+
+            //});
 
             services.AddAuthorization(c =>
             {
@@ -200,6 +235,8 @@ namespace Northwind.API
 
             //Đã remove và thay đổi thành app.UseAuthentication()
             //app.UseIdentity();
+
+
 
             app.UseSwagger();
 
