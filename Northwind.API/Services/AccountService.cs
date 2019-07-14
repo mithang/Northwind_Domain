@@ -29,7 +29,7 @@ namespace Northwind.API.Services
 
             //return await CreateAccessTokens(domainUser, facebookLoginResource.DeviceId,
             //    facebookLoginResource.DeviceName);
-            return new AuthorizationTokensResource ();
+            return await CreateAccessTokens(facebookUser.Email==null?facebookUser.FirstName:facebookUser.Email,"","");
         }
 
         //private async Task<AuthorizationTokensResource> CreateAccessTokens(User user, string deviceId,
@@ -40,5 +40,14 @@ namespace Northwind.API.Services
 
         //    return new AuthorizationTokensResource { AccessToken = accessToken, RefreshToken = refreshToken };
         //}
+        private async Task<AuthorizationTokensResource> CreateAccessTokens(string email, string deviceId,
+            string deviceName)
+        {
+            Guid guid = Guid.NewGuid();
+            var accessToken = _jwtHandler.CreateAccessToken(guid, email);
+            var refreshToken = _jwtHandler.CreateRefreshToken(guid);
+
+            return new AuthorizationTokensResource { AccessToken = accessToken, RefreshToken = refreshToken };
+        }
     }
 }

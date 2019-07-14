@@ -17,7 +17,7 @@ namespace Northwind.API.Services
         {
             _httpClient = new HttpClient
             {
-                BaseAddress = new Uri("https://graph.facebook.com/v2.8/")
+                BaseAddress = new Uri("https://graph.facebook.com/v3.3/")
             };
             _httpClient.DefaultRequestHeaders
                 .Accept

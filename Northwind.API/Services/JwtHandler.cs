@@ -56,11 +56,11 @@ namespace Northwind.API.Services
 
             var signingCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Tokens:Key"])),
                 SecurityAlgorithms.HmacSha256);
-            var expiry = now.AddMinutes(double.Parse(_configuration["Tokens:RefreshExpireMinutes"]));
+            var expiry = now.AddMinutes(15);
             var jwt = CreateSecurityToken(claims, now, expiry, signingCredentials);
             var token = new JwtSecurityTokenHandler().WriteToken(jwt);
 
-            return CreateTokenResource(token, DateTime.UtcNow.AddMinutes(15));
+            return CreateTokenResource(token, expiry);
         }
 
         private JwtSecurityToken CreateSecurityToken(IEnumerable<Claim> claims, DateTime now, DateTime expiry, SigningCredentials credentials)
