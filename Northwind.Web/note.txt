@@ -1,0 +1,22 @@
+﻿1. Tạo Database first
+
+Scaffold-DbContext "Server=DESKTOP-MO30QHU;Database=Medihub4rum;persist security info=True;user id=sa;password=Admin123" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Entities -context MediHub4rumContext -force
+
+2. Phân quyền:
+ Phiên bản 2.2 chỉ cần thêm Role vào DB và Controller thì có thể phân quyền được, không cần dùng:
+
+//services.AddAuthorization(options =>//Cái này trên API thì áp dụng không bỏ bước nào
+//{
+//    //Phiên bản asp.net core 2.2 không cần dòng này, chỉ cần add vào db và controller là chạy được
+//    //options.AddPolicy("HRM", policy => policy.RequireRole("HRM"));
+//    //Dùng để custom lại Claim vì dụ validation tuổi...
+//});
+
+//Chú ý thông tin phân quyền:
+services.AddDefaultIdentity<IdentityUser>()//Add dòng này thì claim chỉ lấy thông tin user
+    .AddRoles<IdentityRole>()//Add dòng này thì claim lấy thêm role của user để phân quyền, thiếu dòng thì phân quyền không được
+//services.AddIdentity<IdentityUser, IdentityRole>()//Or dòng này
+
+3. Phiên bản 2.2 không có view cho Identity/Account/ do đó cần Scafflold nó. Click phải chọn folder Identiy->New Scafflold Item->Identity là sẽ ra tất cả
+
+4. User.Identity.Name: Chỉ lấy được trên web, còn trên api không được, trên api thì muốn lấy name thì cần vào claim để lấy

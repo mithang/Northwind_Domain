@@ -33,6 +33,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.Google;
 using Northwind.API.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace Northwind.API
 {
@@ -84,11 +85,11 @@ namespace Northwind.API
                 //Cấu hình cho email
                 options.User.RequireUniqueEmail = true;
 
-                
-
+            
             })
             .AddEntityFrameworkStores<NorthwindDbContext>().AddDefaultTokenProviders();
 
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             services
                 .AddMvc(options =>
@@ -102,33 +103,33 @@ namespace Northwind.API
                     //Hoặc
                     //options.Filters.Add(new RequireHttpsAttribute());
 
-                    options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
-                    // setupAction.InputFormatters.Add(new XmlDataContractSerializerInputFormatter());
+                    //options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
+                    //// setupAction.InputFormatters.Add(new XmlDataContractSerializerInputFormatter());
 
-                    var xmlDataContractSerializerInputFormatter =
-                        new XmlDataContractSerializerInputFormatter();
-                    xmlDataContractSerializerInputFormatter.SupportedMediaTypes
-                        .Add("application/vnd.marvin.authorwithdateofdeath.full+xml");
-                    options.InputFormatters.Add(xmlDataContractSerializerInputFormatter);
+                    //var xmlDataContractSerializerInputFormatter =
+                    //    new XmlDataContractSerializerInputFormatter();
+                    //xmlDataContractSerializerInputFormatter.SupportedMediaTypes
+                    //    .Add("application/vnd.marvin.authorwithdateofdeath.full+xml");
+                    //options.InputFormatters.Add(xmlDataContractSerializerInputFormatter);
 
-                    var jsonInputFormatter = options.InputFormatters
-                        .OfType<JsonInputFormatter>().FirstOrDefault();
+                    //var jsonInputFormatter = options.InputFormatters
+                    //    .OfType<JsonInputFormatter>().FirstOrDefault();
 
-                    if (jsonInputFormatter != null)
-                    {
-                        jsonInputFormatter.SupportedMediaTypes
-                            .Add("application/vnd.marvin.author.full+json");
-                        jsonInputFormatter.SupportedMediaTypes
-                            .Add("application/vnd.marvin.authorwithdateofdeath.full+json");
-                    }
+                    //if (jsonInputFormatter != null)
+                    //{
+                    //    jsonInputFormatter.SupportedMediaTypes
+                    //        .Add("application/vnd.marvin.author.full+json");
+                    //    jsonInputFormatter.SupportedMediaTypes
+                    //        .Add("application/vnd.marvin.authorwithdateofdeath.full+json");
+                    //}
 
-                    var jsonOutputFormatter = options.OutputFormatters
-                        .OfType<JsonOutputFormatter>().FirstOrDefault();
+                    //var jsonOutputFormatter = options.OutputFormatters
+                    //    .OfType<JsonOutputFormatter>().FirstOrDefault();
 
-                    if (jsonOutputFormatter != null)
-                    {
-                        jsonOutputFormatter.SupportedMediaTypes.Add("application/vnd.marvin.hateoas+json");
-                    }
+                    //if (jsonOutputFormatter != null)
+                    //{
+                    //    jsonOutputFormatter.SupportedMediaTypes.Add("application/vnd.marvin.hateoas+json");
+                    //}
                 })
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
                 .AddFluentValidation()
@@ -175,7 +176,7 @@ namespace Northwind.API
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Tokens:Key"])),
                     ValidateIssuer = false,
                     ValidateAudience = false,
-
+                    AuthenticationType = "ApplicationCookie"
                 };
             }); //Nếu Api có mở trang web thì thêm hàm bên dưới
                 //.AddCookie(async op => {
@@ -204,6 +205,7 @@ namespace Northwind.API
             {
                 c.AddPolicy("NhanVien", p => p.RequireClaim("NhanVien", "All"));
                 //c.AddPolicy("writeAccess", p => p.RequireClaim("scope", "writeAccess"));
+                //c.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
             });
 
             services.AddSwaggerGen(c => {

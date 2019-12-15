@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -14,14 +15,18 @@ using Northwind.Application.Employees.Queries;
 namespace Northwind.API.Controllers
 {
     [Route("api/[controller]")]
-    //[Authorize(Policy = "NhanVien")]
-    [Authorize]
+    [Authorize(Policy = "NhanVien", AuthenticationSchemes=JwtBearerDefaults.AuthenticationScheme)]
+    //[Authorize(Roles ="Admin")]
+    //[Authorize]
     public class EmployeesController : BaseController
     {
+
+
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<EmployeesListViewModel>> GetAll()
         {
+           
             return Ok(await Mediator.Send(new GetEmployeesListQuery()));
         }
 

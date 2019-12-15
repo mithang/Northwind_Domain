@@ -17,6 +17,8 @@ using Northwind.API.Helpers;
 using Northwind.API.Models;
 using Northwind.API.Services;
 using Northwind.API.Resources;
+using Microsoft.AspNetCore.Http;
+
 namespace Northwind.API.Controllers
 {
     [Route("api/[controller]")]
@@ -27,14 +29,19 @@ namespace Northwind.API.Controllers
         private readonly IConfiguration _configuration;
         private readonly IAuthService _authService;
         private readonly AccountService _accountService;
+
+        private readonly IHttpContextAccessor _httpContextAccessor;
+      
+
         public AuthController(UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager, IConfiguration configuration, IAuthService authService, AccountService accountService)
+            SignInManager<ApplicationUser> signInManager, IConfiguration configuration, IAuthService authService, AccountService accountService, IHttpContextAccessor httpContextAccessor)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _configuration = configuration;
             _authService = authService;
             _accountService = accountService;
+            _httpContextAccessor = httpContextAccessor;
         }
         
         [HttpPost("logintoken")]
@@ -95,10 +102,21 @@ namespace Northwind.API.Controllers
             return BadRequest(loginViewModel);
         }
 
-       
+        [HttpGet("getuserbytoken")]
+        public async Task<IActionResult> GetUserByToken()
+        {
+          
+           
+            var user = await _userManager.GetUserAsync(User);
+            return Ok(user);
+
+        }
+
+
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
+            var r= User.IsInRole("HRM");
             if (User.Identity.IsAuthenticated)
             {
                 await _signInManager.SignOutAsync();
@@ -163,10 +181,12 @@ namespace Northwind.API.Controllers
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim("Role","Admin"),
+                new Claim("Name",user.UserName),
                 //new Claim(JwtRegisteredClaimNames.GivenName, user.FirstName),
                 //new Claim(JwtRegisteredClaimNames.FamilyName, user.LastName),
                 //new Claim(JwtRegisteredClaimNames.Email, user.Email)
-                //new Claim("NhanVien","All") dùng khi c.AddPolicy("NhanVien", p => p.RequireClaim("NhanVien", "All")); và [Authorize(Policy = "NhanVien")]public class EmployeesController
+                new Claim("NhanVien","All") //dùng khi c.AddPolicy("NhanVien", p => p.RequireClaim("NhanVien", "All")); và [Authorize(Policy = "NhanVien")]public class EmployeesController
 
             }.Union(userClaims);
 
